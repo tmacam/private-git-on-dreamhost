@@ -163,98 +163,8 @@ We will use the script ``newgit.sh``, presented bellow, to create new
 repositories [1]_ [2]_ . Remember to modify
 the value of the GIT_REPOS_ROOT variable in it to match our setup:
 
-::
-
-
-    #!/bin/bash
-    
-    # this script is based on code from the following blog post
-    # http://arvinderkang.com/2010/08/25/hosting-git-repositories-on-dreamhost/
-    # and http://gist.github.com/73622
-    
-    
-    set -e
-    
-    
-    # Please, configure a default GIT_REPOS_ROOT to match your config
-    #GIT_REPOS_ROOT="~/private_repos/"
-    
-    DEFAULT_DESCRIPTION='no description :('
-    
-    
-    # describe how the script works
-    usage()
-    {
-      echo "Usage: $0 [ -h ] [ -r directory] [ -d description ] [ -n projectname ]"
-      echo ""
-      echo "If no projectname is given, the name of the parent folder will be used as project name."
-      echo ""
-      echo "  -r directory   : (root) directory holding your git repositories"
-      echo "  -d description : description for gitweb"
-      echo "  -h             : print this screen"
-      echo "  -n name        : name of the project (should end in .git)"
-      echo ""
-    }
-    
-    DESCRIPTION=${DEFAULT_DESCRIPTION}
-    
-    # evaluate the options passed on the command line
-    while getopts r:d:n:h option
-    do
-      case "${option}"
-      in
-        r) GIT_REPOS_ROOT=${OPTARG};;
-        d) DESCRIPTION=${OPTARG};;
-        n) REPONAME=${OPTARG};;
-        h) usage
-          exit 1;;
-      esac
-    done
-    
-    # check if repositories directory is given and is accessible
-    if [ -z $GIT_REPOS_ROOT  ]; then
-    	usage
-    	exit 1
-    fi
-    if ! [ -d $GIT_REPOS_ROOT  ]; then
-    	echo "ERROR: '${GIT_REPOS_ROOT}' is not a directory"
-    	echo ""
-    	usage
-    	exit 1
-    fi
-    
-    
-    # check if name of repository is given. if not, use folder name
-    if [ -z $REPONAME ]; then
-      REPONAME=$(basename $PWD)
-    fi
-    
-    # Add .git at and if needed
-    if ! ( echo $REPONAME | grep -q '\.git$'); then
-      REPONAME="${REPONAME}.git"
-    fi
-    
-    
-    #
-    # Ready to go
-    #
-    
-    
-    REP_DIR="${GIT_REPOS_ROOT}/${REPONAME}"
-    echo REP_DIR $REP_DIR DESCRIPTION '[' ${DESCRIPTION} ']'
-    exit 0
-    mkdir ${REP_DIR}
-    pushd ${REP_DIR}
-    git --bare init
-    git --bare update-server-info
-    cp hooks/post-update.sample hooks/post-update
-    chmod a+x hooks/post-update
-    echo $DESCRIPTION > description
-    # This mark the repository as exportable.
-    # For more info refer to git-http-backend manpage
-    touch git-daemon-export-ok
-    popd
-    exit 0
+.. include:: newgit.sh
+   :literal:
 
 Move or copy this file to an appropriate path (say, your home
 directory would be fine) and turn it into an executable::
@@ -295,32 +205,8 @@ bellow or just copy the contents of the file ``model-htaccess`` into
 it and adapt it to match your config:
 
 
-::
-
-
-    Options +Indexes
-    
-    # GIT BEGIN ###########################################################
-    
-    SetEnv HTTP_GIT_PROJECT_ROOT /home/user/private_repos/
-    SetEnv HTTP_GITWEB_CONFIG /home/user/private_repos/gitweb_config.perl
-    
-    
-    RewriteEngine On
-    # UNCOMMENT THE LINE BELLOW IF GitWeb was setup
-    # RewriteRule ^$  gitweb_wrapper.cgi/ [L,E=SCRIPT_URL:/$1]
-    RewriteRule /([?].*)$ git-http-backend-private.cgi/ [L,E=SCRIPT_URL:/$1]
-    
-    # GIT END ############################################################
-    
-    # AUTHENTICATION BEGIN ###############################################
-    AuthType Digest
-    AuthName "Private Git Repository Access"
-    # UNCOMMENT THE LINE BELLOW FOR BETTER PERFORMANCE
-    # AuthDigestDomain /corporate-git/
-    AuthUserFile /home/user/private_repos/.htpasswd
-    Require valid-user
-    # AUTHENTICATION END  ################################################
+.. include:: model-htaccess
+   :literal:
 
 For now we will focus on the area between the ``# GIT BEGIN`` and ``#
 GIT END`` blocks.  Modify ``HTTP_GIT_PROJECT_ROOT`` to match you setup:
@@ -344,13 +230,8 @@ where you ``.htaccess`` is by coping the one that comes with this guide
 to that directory or by creating an empty file with the following
 contents:
 
-::
-
-
-    #!/bin/sh
-    export GIT_HTTP_EXPORT_ALL=1
-    export GIT_PROJECT_ROOT=${HTTP_GIT_PROJECT_ROOT:?HTTP_GIT_PROJECT_ROOT env. variable not set. Aborting.}
-    /usr/lib/git-core/git-http-backend
+.. include:: git-http-backend-private.cgi
+   :literal:
 
 Turn it into an executable file::
 
@@ -475,14 +356,8 @@ Get back to where your ``.htaccess`` file is
 GitWeb. Just copy ``gitweb_wrapper.cgi`` or create an empty file with
 the contents bellow:
 
-::
-
-
-    #!/bin/bash
-    export GITWEB_CONFIG=${HTTP_GITWEB_CONFIG:?HTTP_GITWEB_CONFIG env. variable not set. Aborting.}
-    export GIT_PROJECT_ROOT=${HTTP_GIT_PROJECT_ROOT:?HTTP_GIT_PROJECT_ROOT env. variable not set. Aborting.}
-    
-    ${HOME}/gitweb/gitweb.cgi
+.. include:: gitweb_wrapper.cgi
+   :literal:
 
 .. attention::
    If you have installed gitweb files in a different directory, you
@@ -501,21 +376,8 @@ copy ``gitweb_config.perl`` provided with this guide to
 ``${GIT_REPOS_ROOT}/gitweb_config.perl`` or create an empty file in
 that path location with the following contents:
 
-::
-
-
-    # where is the git binary?
-    $GIT = "/usr/bin/git";
-    # where are our git project repositories?
-    $projectroot = $ENV{'GIT_PROJECT_ROOT'};
-    # what do we call our projects in the gitweb UI?
-    $home_link_str = "My Git Projects";
-    #  where are the files we need for gitweb to display?
-    @stylesheets = ("gitweb.css");
-    $logo = "git-logo.png";
-    $favicon = "/favicon.png";
-    # what do we call this site?
-    $site_name = "My Personal Git Repositories";
+.. include:: gitweb_config.perl
+   :literal:
 
 You can customize it a little bit, if you want, but the most important
 setting, ``$projectroot``, is set to match the value of
@@ -546,42 +408,8 @@ wiki page on CGI`__ and allows your to do verify if you are able to
 execute CGI scrips and what settings Apache is passing to the other
 CGI scripts we use here.
 
-::
-
-
-    #!/bin/sh
-    
-    # disable filename globbing
-    set -f
-    
-    echo "Content-type: text/plain; charset=iso-8859-1"
-    echo
-    
-    echo CGI/1.0 test script report:
-    echo
-    
-    echo argc is $#. argv is "$*".
-    echo
-    
-    echo SERVER_SOFTWARE = $SERVER_SOFTWARE
-    echo SERVER_NAME = $SERVER_NAME
-    echo GATEWAY_INTERFACE = $GATEWAY_INTERFACE
-    echo SERVER_PROTOCOL = $SERVER_PROTOCOL
-    echo SERVER_PORT = $SERVER_PORT
-    echo REQUEST_METHOD = $REQUEST_METHOD
-    echo HTTP_ACCEPT = "$HTTP_ACCEPT"
-    echo PATH_INFO = "$PATH_INFO"
-    echo PATH_TRANSLATED = "$PATH_TRANSLATED"
-    echo SCRIPT_NAME = "$SCRIPT_NAME"
-    echo QUERY_STRING = "$QUERY_STRING"
-    echo REMOTE_HOST = $REMOTE_HOST
-    echo REMOTE_ADDR = $REMOTE_ADDR
-    echo REMOTE_USER = $REMOTE_USER
-    echo AUTH_TYPE = $AUTH_TYPE
-    echo CONTENT_TYPE = $CONTENT_TYPE
-    echo CONTENT_LENGTH = $CONTENT_LENGTH
-    echo HTTP_GITWEB_CONFIG = $HTTP_GITWEB_CONFIG
-    echo GITWEB_CONFIG = $GITWEB_CONFIG
+.. include:: info.cgi
+    :literal:
 
 Copy it to ``GIT_WEB_FOLDER``, turn it into an executable script
 (``chmod 755 ...``) and point your browser to it ( That would be

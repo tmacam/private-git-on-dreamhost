@@ -1,0 +1,23 @@
+Options +Indexes
+
+# GIT BEGIN ###########################################################
+
+SetEnv HTTP_GIT_PROJECT_ROOT /home/user/private_repos/
+SetEnv HTTP_GITWEB_CONFIG /home/user/private_repos/gitweb_config.perl
+
+
+RewriteEngine On
+# UNCOMMENT THE LINE BELLOW IF GitWeb was setup
+# RewriteRule ^$  gitweb_wrapper.cgi/ [L,E=SCRIPT_URL:/$1]
+RewriteRule /([?].*)$ git-http-backend-private.cgi/ [L,E=SCRIPT_URL:/$1]
+
+# GIT END ############################################################
+
+# AUTHENTICATION BEGIN ###############################################
+AuthType Digest
+AuthName "Private Git Repository Access"
+# UNCOMMENT THE LINE BELLOW FOR BETTER PERFORMANCE
+# AuthDigestDomain /corporate-git/
+AuthUserFile /home/user/private_repos/.htpasswd
+Require valid-user
+# AUTHENTICATION END  ################################################

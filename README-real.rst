@@ -446,15 +446,27 @@ collection. You cannot *clone* it yet cause it is empty::
 
 So, now what? Keep reading.
 
-Pulling and pushing to a new bare repository
---------------------------------------------
+Pushing to a new empty repository
+---------------------------------
 
+What you usually do is creating a local repository, adding file to it and committing this repository history to the new, empty and pristine repository in your web server::
 
-What you usually do is creating a local repository, adding file to it and committing this repository history to the new, empty and pristine repository in your web server.
+    mkdir toyproject
+    cd toyproject
+    git init
+    touch README
+    git add README
+    git commit -m 'first commit'
+    git remote add origin http://www.example.tld/corporate-git/toyproject.git.git
+    git push origin master
+      
+If you have an existing Git Repo, that's the procedure::
 
-
-XXX -- See http://help.github.com/creating-a-repo/ for now...
-
+    cd existing_toyproject_git_repo
+    git remote add origin http://www.example.tld/corporate-git/toyproject.git
+    git push origin master
+      
+The above workflow follows what is presented in http://help.github.com/creating-a-repo/.
 
 
 
@@ -499,6 +511,7 @@ References
 * git-http-backend_ manpage
 * `Pro Git - Smart HTTP Transport <http://progit.org/2010/03/04/smart-http.html>`_
 * http://www.jedi.be/blog/2009/05/06/8-ways-to-share-your-git-repository/
+* http://help.github.com/creating-a-repo/
 
 .. _DreamHost: http://www.dreamhost.com
 .. _GitHub: http://github.com

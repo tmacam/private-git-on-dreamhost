@@ -73,8 +73,6 @@ fi
 
 
 REP_DIR="${GIT_REPOS_ROOT}/${REPONAME}"
-echo REP_DIR $REP_DIR DESCRIPTION '[' ${DESCRIPTION} ']'
-exit 0
 mkdir ${REP_DIR}
 pushd ${REP_DIR}
 git --bare init

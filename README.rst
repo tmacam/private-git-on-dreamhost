@@ -1,7 +1,7 @@
 
 
 =======================================
-Private GIT repositories (in DreamHost)
+Private GIT repositories (on DreamHost)
 =======================================
 
 :Author: Tiago Alves Macambira
@@ -16,21 +16,21 @@ Introduction
 ============
 
 This is *yet another* guide describing how to setup private
-HTTP-accessible Git repositories in Dreamhost_ using Git's
+HTTP-accessible Git repositories on Dreamhost_ using Git's
 ``git-http-backend`` (a.k.a git's `Smart HTTP protocol`__). While
 similar guides can easily be found by the thousands in the Web (I've
 listed some of them in the Refereces section), I've found that some
-guides have outdated information and that the setup described in
-others could be improved. Thus, this guide tries to update and
+guides have outdated information or that the setup described in
+them could be improved. Thus, this guide tries to update, improve and
 consolidate the information dispersed in such sources.
 
 __ GitSmartHTTP_
 
-Some might ask "Why on Earth would someone opt to create its on
+Some might ask "Why on Earth would someone opt to create its own
 private Git hosting solution while better offerings are available from
-sites such as, let's say, GitHub_?". As the guy `from RailsTips
+sites such as, let's say, GitHub_?" As the guy `from RailsTips
 pointed out in one of his articles`__, sometimes you don't need or
-don't want to "share" a project with anyone but with yourself and
+don't want to "share" a project with anyone but yourself and
 paying for a GitHub_-like service might just not make sense.  If
 that's your case, than this guide is for you.
 
@@ -59,6 +59,13 @@ Assumptions and requirements
   ``git-http-backend``. As for SSH, guides describing how to setup a
   similar environment for SSH-accessible repositories can be found
   easily on the web.
+
+* Repositories will be password protected and available for both
+  reading and writting.
+
+  As we will explain latter, in the `Setup git-http-backend for your
+  repositories`_ section, we will have to password-protect our
+  repositories in order to be able to ``git push`` to them through HTTP.
 
 * We will stick to a DRY_ (Don't Repeat Yourself) philosophy.
 
@@ -151,7 +158,7 @@ this directory and protect it against filesystem access from others::
 
     export GIT_REPOS_ROOT="~/private_repos/"
     mkdir ${GIT_REPOS_ROOT}
-    chmod 700 ${GIT_REPOS_ROOT}
+    chmod 711 ${GIT_REPOS_ROOT}
 
 
 Setup the bare repository creation script
@@ -241,8 +248,6 @@ the value of the GIT_REPOS_ROOT variable in it to match our setup:
     
     
     REP_DIR="${GIT_REPOS_ROOT}/${REPONAME}"
-    echo REP_DIR $REP_DIR DESCRIPTION '[' ${DESCRIPTION} ']'
-    exit 0
     mkdir ${REP_DIR}
     pushd ${REP_DIR}
     git --bare init
@@ -287,7 +292,7 @@ a ``.htaccess`` file in it::
     cd corporate-git
     export GIT_WEB_DIR=`pwd` # we will use it in latter steps
     touch .htaccess
-    chmod 700 .htaccess
+    chmod 644 .htaccess
 
 
 Now, edit this ``.htaccess`` contents to match the text presented
@@ -307,9 +312,15 @@ it and adapt it to match your config:
     
     
     RewriteEngine On
-    # UNCOMMENT THE LINE BELLOW IF GitWeb was setup
-    # RewriteRule ^$  gitweb_wrapper.cgi/ [L,E=SCRIPT_URL:/$1]
-    RewriteRule /([?].*)$ git-http-backend-private.cgi/ [L,E=SCRIPT_URL:/$1]
+    DirectoryIndex  gitweb_wrapper.cgi
+    # The following two rules can be used instead of DirectoryIndex
+    #RewriteRule ^$  gitweb_wrapper.cgi/ [L,E=SCRIPT_URL:/$1]
+    #RewriteRule ^([?].*)$ gitweb_wrapper.cgi/ [L,E=SCRIPT_URL:/$1]
+    
+    # Everything else that is not a file is forwarded to git-http-backend
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^([^?].+)$ git-http-backend-private.cgi/$1
+    
     
     # GIT END ############################################################
     
@@ -334,8 +345,8 @@ information::
 So, in our example, ``HTTP_GIT_PROJECT_ROOT`` value should be set to
 ``/home/user/private_repos/``, as presented in the example above.
 
-Setup git-http-web for you repositories
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Setup git-http-backend for your repositories
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Not we will create a CGI script that will invoke
 ``git-http-backend``. In your ``.htaccess`` this script is referred as
@@ -365,12 +376,19 @@ And that's it. No need to setup anything: all the settings this
 scripts are passed to it through environment variables set by Apache
 and defined in the ``.htaccess`` file.
 
-From this point on you should be able to create repositories and
-access them through HTTP.
+From this point on you should be able to create repositories from the
+command line and
+access them through HTTP, but they will be
+**read-only**. As stated in git-http-backend_ manpage, "*by default,
+only the ``upload-pack`` service is enabled, which serves git ``fetch-pack``
+and git ls-remote clients, which are invoked from ``git fetch``, ``git pull``,
+and ``git clone``*". For **write access**, i.e., to be able to perform a
+``git push``, the ``receive-pack`` service is needed, and it **is only
+enabled when the client is authenticated**.
 
 
-Password-protect you repository
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Password-protect your repository
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We are almost set. Let's configure password protection for this whole
 thing.  We will focus on the latter part of your ``.htaccess``, the one
@@ -385,12 +403,9 @@ reproduce bellow::
     # AUTHENTICATION END  #########################
 
 You will have to create the password file pointed by ``AuthUserFile``
-with the ``htdigest`` tool::
+and use the ``htdigest`` tool to add a user to this file ::
 
-    htdigest -c /home/user/private_repos/.htpasswd
-
-Now add a user to this file::
-
+    touch /home/user/private_repos/.htpasswd
     htdigest /home/user/private_repos/.htpasswd "Private Git Repository Access" username
 
 
@@ -466,12 +481,12 @@ Setting up GitWeb
 Now, copy all the GitWeb's media files into the directory
 where your ``.htaccess`` is::
 
-    cp ${GITWEB_INSTALL_DIR}/*.{css,png,js} ${GIT_WEB_FOLDER}
-    # in this example, GIT_WEB_FOLDER points
+    cp ${GITWEB_INSTALL_DIR}/*.{css,png,js} ${GIT_WEB_DIR}
+    # in this example, GIT_WEB_DIR points
     # to ~/www.example.tld/corporate-git
 
 Get back to where your ``.htaccess`` file is
-(i.e. ``GIT_WEB_FOLDER``). We will create a wrapper CGI for
+(i.e. ``GIT_WEB_DIR``). We will create a wrapper CGI for
 GitWeb. Just copy ``gitweb_wrapper.cgi`` or create an empty file with
 the contents bellow:
 
@@ -533,11 +548,16 @@ Troubleshooting
 
 So, something is not working as expected?
 
-First of all, look at your server logs. They will probably give you a
-clue of what is going wrong.
+Disable authentication
+~~~~~~~~~~~~~~~~~~~~~~
 
 Comment out the authentication code. This will ease your "debugging"
 process.
+
+Remember to uncomment it latter.
+
+Use info.cgi script to check CGI script's environment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A nice way to check if there is something really wrong with your setup
 is to use the ``info.cgi``, whose code is presented bellow. This
@@ -580,15 +600,43 @@ CGI scripts we use here.
     echo AUTH_TYPE = $AUTH_TYPE
     echo CONTENT_TYPE = $CONTENT_TYPE
     echo CONTENT_LENGTH = $CONTENT_LENGTH
+    echo ""
+    echo HTTP_GIT_PROJECT_ROOT = $HTTP_GIT_PROJECT_ROOT
     echo HTTP_GITWEB_CONFIG = $HTTP_GITWEB_CONFIG
-    echo GITWEB_CONFIG = $GITWEB_CONFIG
+    
+    exit 0
+    
 
-Copy it to ``GIT_WEB_FOLDER``, turn it into an executable script
+Copy it to ``GIT_WEB_DIR``, turn it into an executable script
 (``chmod 755 ...``) and point your browser to it ( That would be
 ``http://www.example.tld/corporate-git/`` in our example).
 
 
 __ DreamHostWikiCGI_
+
+Check the server logs
+~~~~~~~~~~~~~~~~~~~~~
+
+We are listing this as a last step but that's probably the fist place
+where you should have looked for clues: your server logs. 
+
+
+For example::
+
+    [Mon Oct 25 18:30:28 2010] [error] [client 150.164.3.192] Service not enabled: 'receive-pack'
+
+This message says that 'receive-pack' was not enable -- probably
+because you are trying to push to a repository and authentication was
+disabled. As we explained in `Setup git-http-backend for your
+repositories`_, you **must** use authentication to be able to write
+(*push*) to repositories using git-http-backend.
+
+
+This one should be pretty obvious::
+
+    Digest: user username: password mismatch: /corporate-git/test.git/info/refs
+
+And so on... 
 
 
 
@@ -604,19 +652,37 @@ Creating new bare repositories
 In order to create a new repository, say ``toyproject.git``, all you
 have to do is ssh into your Dreamhost account and::
 
-    ~/newgit.sh toyproject.git
+    ~/newgit.sh -r ${GIT_REPOS_ROOT} -d "My first private repository" -n toyproject
 
 
 That's it: your created and empty repository in you repository
-collection. You cannot *clone* it yet cause it is empty::
+collection. You can *clone* it if you want. 
 
 
-    $ git clone http://www.example.tld/corporate-git/toyproject.git
+Cloning an empty repository
+---------------------------
+
+So, you got a new pristine and empty repository. Let's *clone* it, shall we?::
+
+
+    $ git clone http://username@www.example.tld/corporate-git/toyproject.git
     Initialized empty Git repository in /private/tmp/teste/.git/
-    fatal: http://www.example.tld/corporate-git/toyproject.git/info/refs not found: did you run git update-server-info on the server?
+    Password: 
+    warning: You appear to have cloned an empty repository.
 
 
-So, now what? Keep reading.
+.. important::
+    Have you noticed that we have a ``username@`` in the URL? This
+    tells git that it must athenticate to the server before trying to
+    access the git repository.
+    
+    In this example, we are acessing the
+    repository with the crentials of the user ``username``, the one we
+    setup in `Password-protect your repository`_. Modify it to match
+    the user you created in that step.
+
+But what if you already have a local repository and all you want is
+push it and its history to the server?
 
 Pushing to a new empty repository
 ---------------------------------
@@ -629,13 +695,13 @@ What you usually do is creating a local repository, adding file to it and commit
     touch README
     git add README
     git commit -m 'first commit'
-    git remote add origin http://www.example.tld/corporate-git/toyproject.git.git
+    git remote add origin http://username@www.example.tld/corporate-git/toyproject.git
     git push origin master
       
 If you have an existing Git Repo, that's the procedure::
 
     cd existing_toyproject_git_repo
-    git remote add origin http://www.example.tld/corporate-git/toyproject.git
+    git remote add origin http://username@www.example.tld/corporate-git/toyproject.git
     git push origin master
       
 The above workflow follows what is presented in http://help.github.com/creating-a-repo/.
@@ -681,9 +747,10 @@ References
 * http://wiki.dreamhost.com/Git#Smart_HTTP
 * http://arvinderkang.com/2010/08/25/hosting-git-repositories-on-dreamhost/
 * git-http-backend_ manpage
-* `Pro Git - Smart HTTP Transport <http://progit.org/2010/03/04/smart-http.html>`_
+* |GitSmartHTTP|_
 * http://www.jedi.be/blog/2009/05/06/8-ways-to-share-your-git-repository/
 * http://help.github.com/creating-a-repo/
+
 
 .. _DreamHost: http://www.dreamhost.com
 .. _GitHub: http://github.com
@@ -696,6 +763,7 @@ References
 .. _SuExec: http://wiki.dreamhost.com/Suexec
 .. _DRY: http://en.wikipedia.org/wiki/Don't_repeat_yourself
 .. _git-http-backend: http://www.kernel.org/pub/software/scm/git/docs/git-http-backend.html
+.. |GitSmartHTTP| replace:: Pro Git - Smart HTTP Transport
 .. _GitSmartHTTP: http://progit.org/2010/03/04/smart-http.html
 .. _Git homepage: http://git-scm.com/
 .. _DreamHostWikiCGI: http://wiki.dreamhost.com/CGI

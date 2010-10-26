@@ -7,9 +7,15 @@ SetEnv HTTP_GITWEB_CONFIG /home/user/private_repos/gitweb_config.perl
 
 
 RewriteEngine On
-# UNCOMMENT THE LINE BELLOW IF GitWeb was setup
-# RewriteRule ^$  gitweb_wrapper.cgi/ [L,E=SCRIPT_URL:/$1]
-RewriteRule /([?].*)$ git-http-backend-private.cgi/ [L,E=SCRIPT_URL:/$1]
+DirectoryIndex  gitweb_wrapper.cgi
+# The following two rules can be used instead of DirectoryIndex
+#RewriteRule ^$  gitweb_wrapper.cgi/ [L,E=SCRIPT_URL:/$1]
+#RewriteRule ^([?].*)$ gitweb_wrapper.cgi/ [L,E=SCRIPT_URL:/$1]
+
+# Everything else that is not a file is forwarded to git-http-backend
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^([^?].+)$ git-http-backend-private.cgi/$1
+
 
 # GIT END ############################################################
 

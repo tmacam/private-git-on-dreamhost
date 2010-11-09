@@ -113,6 +113,26 @@ __ DreamHostWikiCGI_
   domain of its own, say **http://corporate-git.example.tld** should
   be fairly simple.
 
+About this document
+-------------------
+
+This document and its companion files are initially hosted on
+http://github.com/tmacam/private-git-on-dreamhost.
+
+The file ``README.rst`` is generated from ``README-real.rst``.  So, if
+you plan on doing any updates or fixes, ``README-real.rst`` is the
+file you ought to edit. Just run ``make`` afterwards in order to get
+``README.rst`` updated as well. This is done because I wanted to use
+GitHub_'s automatic rendering of README files but I didn't want to
+just paste the contents of the companion files in this ``README.rst``
+and risk getting the Guide and files out of sync.  Unfortunately,
+GitHub does not allow the use of RestructuredText's ``include``
+directive, so I had to fake it -- and here is the reason why we have
+``README-real.rst``.
+
+This guide is distributed under the Creative Common BY-SA license while
+companion files are distributed under a MIT License.
+
 
 Installation
 ============

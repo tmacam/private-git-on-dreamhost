@@ -1,5 +1,3 @@
-
-
 =======================================
 Private GIT repositories (on DreamHost)
 =======================================
@@ -522,6 +520,11 @@ the contents bellow:
 .. attention::
    If you have installed gitweb files in a different directory, you
    will have to update this file to match the install location.
+   
+Turn it into an executable file::
+
+    chmod 755 gitweb_wrapper.cgi
+
 
 Once again, we are using settings stored in ``.htaccess`` file and
 passing them to a script using environment variables set by Apache. In
@@ -542,7 +545,7 @@ that path location with the following contents:
     # where is the git binary?
     $GIT = "/usr/bin/git";
     # where are our git project repositories?
-    $projectroot = $ENV{'GIT_PROJECT_ROOT'};
+    $projectroot = $ENV{'HTTP_GIT_PROJECT_ROOTS'};
     # what do we call our projects in the gitweb UI?
     $home_link_str = "My Git Projects";
     #  where are the files we need for gitweb to display?
@@ -561,6 +564,12 @@ directory where your repositories are, in ``${GIT_REPOS_ROOT}``. If,
 for some reason, you prefer to store it elsewhere, you will have to
 update this information in the ``.htaccess`` file.
 
+Finally give execute permission to this file::
+
+    chmod 755 ${GIT_REPOS_ROOT}/gitweb_config.perl
+
+
+.. then you are good to go
     
 
 Troubleshooting

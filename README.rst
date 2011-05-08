@@ -435,7 +435,7 @@ You will be prompted for a password. And that's it.
 Notice:
 
 * we are using `Digest Authentication
-  <http://httpd.apache.org/docs/2.2/mod/mod_auth_digest.html#using>`_. Is
+  <http://httpd.apache.org/docs/2.2/mod/mod_auth_digest.html#using>`_. It
   is supposed to be more secure than plain authentication.
 * The password file should be keep in a place not directly accessible
   from the web. Ideally it should not even be placed in the directory
@@ -518,6 +518,11 @@ the contents bellow:
     export GIT_PROJECT_ROOT=${HTTP_GIT_PROJECT_ROOT:?HTTP_GIT_PROJECT_ROOT env. variable not set. Aborting.}
     
     ${HOME}/gitweb/gitweb.cgi
+
+Turn it into an executable file::
+
+    chmod 755 gitweb_wrapper.cgi
+
 
 .. attention::
    If you have installed gitweb files in a different directory, you

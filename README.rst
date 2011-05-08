@@ -545,7 +545,7 @@ that path location with the following contents:
     # where is the git binary?
     $GIT = "/usr/bin/git";
     # where are our git project repositories?
-    $projectroot = $ENV{'HTTP_GIT_PROJECT_ROOTS'};
+    $projectroot = $ENV{'HTTP_GIT_PROJECT_ROOT'};
     # what do we call our projects in the gitweb UI?
     $home_link_str = "My Git Projects";
     #  where are the files we need for gitweb to display?

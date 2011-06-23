@@ -2,10 +2,11 @@
 TARGETS := README.html
 RST2HTML := /Users/macambira/bin/rst2html.py
 RST2HTMLOPT := --input-encoding=utf-8 --output-encoding=utf-8
+	#--initial-header-level=3
 
 all: $(TARGETS) README.rst
 
-# GitHub 
+# GitHub
 README.rst : README-real.rst
 	awk -f parse_readme_includes.awk $< > .tmp.$@
 	mv -fv .tmp.$@ $@

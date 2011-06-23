@@ -63,7 +63,7 @@ Assumptions and requirements
 * Repositories will be password protected and available for both
   reading and writting.
 
-  As we will explain latter, in the `Setup git-http-backend for your
+  As we will explain later, in the `Setup git-http-backend for your
   repositories`_ section, we will have to password-protect our
   repositories in order to be able to ``git push`` to them through HTTP.
 
@@ -169,7 +169,7 @@ Create the directory where your repositories will live
 
 It should reside somewhere not accessible from the web or directly
 served by the web server. We will tell Apache and ``git-http-backend``
-how to properly and securely serve those repositories latter. For now,
+how to properly and securely serve those repositories later. For now,
 we want them protected from third parties.
 
 Say we decided to store them in ``~/private_repos/``. We will refer to
@@ -222,7 +222,7 @@ a ``.htaccess`` file in it::
     cd ~/www.example.tld
     mkdir corporate-git
     cd corporate-git
-    export GIT_WEB_DIR=`pwd` # we will use it in latter steps
+    export GIT_WEB_DIR=`pwd` # we will use it in later steps
     touch .htaccess
     chmod 644 .htaccess
 
@@ -253,7 +253,7 @@ Setup git-http-backend for your repositories
 Not we will create a CGI script that will invoke
 ``git-http-backend``. In your ``.htaccess`` this script is referred as
 ``git-http-backend-private.cgi``. Create it in the same directory
-where you ``.htaccess`` is by coping the one that comes with this guide
+where your ``.htaccess`` is by coping the one that comes with this guide
 to that directory or by creating an empty file with the following
 contents:
 
@@ -396,8 +396,9 @@ Turn it into an executable file::
 
 
 .. attention::
-   If you have installed gitweb files in a different directory, you
-   will have to update this file to match the install location.
+   Remember to to update this file by replacing ``/home/user/gitweb``
+   to match gitweb's install location, i.e., to match the contents
+   of ``${GIT_WEB_DIR}``.
 
 Once again, we are using settings stored in ``.htaccess`` file and
 passing them to a script using environment variables set by Apache. In
@@ -437,7 +438,7 @@ Disable authentication
 Comment out the authentication code. This will ease your "debugging"
 process.
 
-Remember to uncomment it latter.
+Remember to uncomment it later.
 
 Use info.cgi script to check CGI script's environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

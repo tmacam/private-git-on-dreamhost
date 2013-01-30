@@ -19,7 +19,7 @@ This is *yet another* guide describing how to setup private
 HTTP-accessible Git repositories on Dreamhost_ using Git's
 ``git-http-backend`` (a.k.a git's `Smart HTTP protocol`__). While
 similar guides can easily be found by the thousands in the Web (I've
-listed some of them in the Refereces section), I've found that some
+listed some of them in the References section), I've found that some
 guides have outdated information or that the setup described in
 them could be improved. Thus, this guide tries to update, improve and
 consolidate the information dispersed in such sources.
@@ -61,7 +61,7 @@ Assumptions and requirements
   easily on the web.
 
 * Repositories will be password protected and available for both
-  reading and writting.
+  reading and writing.
 
   As we will explain later, in the `Setup git-http-backend for your
   repositories`_ section, we will have to password-protect our
@@ -109,7 +109,7 @@ __ DreamHostWikiCGI_
 
   The idea is that your private git repos will be available in an
   address such as **http://www.example.tld/corporate-git/**. Adapting
-  the instructions bellow so you can serve them from the root of a
+  the instructions below so you can serve them from the root of a
   domain of its own, say **http://corporate-git.example.tld** should
   be fairly simple.
 
@@ -150,7 +150,7 @@ pre-installed on most Dreamhost machines. To verify it::
     $ git --version
     git version 1.7.1.1
 
-As you see, the box that serves my domain in dreamhost has git version
+As you see, the box that serves my domain in DreamHost has git version
 1.7.1.1 installed. `Anything greater than 1.6.6 shall do`__.
 
 __ GitSmartHTTP_
@@ -174,7 +174,7 @@ we want them protected from third parties.
 
 Say we decided to store them in ``~/private_repos/``. We will refer to
 this directly by ``GIT_REPOS_ROOT`` in the rest of this guide. Create
-this directory and protect it against filesystem access from others::
+this directory and protect it against file system access from others::
 
     export GIT_REPOS_ROOT="~/private_repos/"
     mkdir ${GIT_REPOS_ROOT}
@@ -215,7 +215,7 @@ Setup your .htaccess
 
 As we stated in `Assumptions and requirements`_, we want to serve our files from
 **http://www.example.tld/corporate-git/**. So, go to the directory
-holding your domain files (``~/www.example.tld``, in our exemple),
+holding your domain files (``~/www.example.tld``, in our example),
 create a ``corporate-git`` directory in it if it doesn't exist yet and create
 a ``.htaccess`` file in it::
 
@@ -319,7 +319,7 @@ Notice:
   to be served by ``git-http-backend`` but I'm lazy and I hope this
   will be enough. :) 
 * If you update the value of the ``AuthName`` setting you **must**
-  also change the 2nd. parameter passed to ``htdigest``, i.e., the
+  also change the |2nd|. parameter passed to ``htdigest``, i.e., the
   *Realm*, as `they must match
   <http://www.freebsdwiki.net/index.php/Apache,_Digest_Authentication>`_!
   Odd, I know. But that's the way it is.
@@ -613,8 +613,10 @@ References
 .. _GitSmartHTTP: http://progit.org/2010/03/04/smart-http.html
 .. _Git homepage: http://git-scm.com/
 .. _DreamHostWikiCGI: http://wiki.dreamhost.com/CGI
+.. |2nd| replace:: 2\ :sup:`nd`
 .. 
    .. target-notes::
 
 
 .. sectnum::
+

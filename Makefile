@@ -1,6 +1,6 @@
 
 TARGETS := README.html
-RST2HTML := /Users/macambira/bin/rst2html.py
+RST2HTML := $(shell which rst2html)
 RST2HTMLOPT := --input-encoding=utf-8 --output-encoding=utf-8
 	#--initial-header-level=3
 
